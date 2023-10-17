@@ -3,14 +3,53 @@
     <head>
         <title>Melkanea Discord OAuth2 App</title>
     </head>
+    <style>
+        html {
+        background-color: rgba(7, 167, 33, 0.698);
+            }
+            /*align div to center*/
+        .container {
+            height: 200px;
+            position: relative;
+            border: 3px solid green;
+            }
+        .center {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            }
+    </style>
     <body>
-        <div id="info">Melkanea was Here!</div>
+        <section>
+            <div class="container">
+                <div class="center">
+                    <div>Melkanea was Here!</div>
+                    <h4 id="info">
 
-        <!-- Add a login button with an ID for easier selection -->
-        <button id="login" style="display: none;" onclick="redirectToDiscord()">Discord Login!</button>
+                    </h4>
 
-        
-        
+                    <!-- Add a login button with an ID for easier selection -->
+                    <button id="login" style="display: none;"
+                        onclick="redirectToDiscord()">Discord Login!</button>
+                </div>
+
+            </div>
+            <div class="ko-fi">
+                <script
+                    src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+                <script>
+                kofiWidgetOverlay.draw('brandynette', {
+                    'type': 'floating-chat',
+                    'floating-chat.donateButton.text': 'Tip Us',
+                    'floating-chat.donateButton.background-color': '#00bfa5',
+                    'floating-chat.donateButton.text-color': '#fff'
+                });
+            </script>
+            </div>
+        </section>
         <script>
             function redirectToDiscord() {
                 const randomString = generateRandomString();
@@ -36,29 +75,25 @@
                 return randomString;
             }
 
-            window.onload = () => {
-                const fragment = new URLSearchParams(window.location.hash.slice(1));
-                const [accessToken, tokenType, state] = [fragment.get('access_token'), fragment.get('token_type'), fragment.get('state')];
+        window.onload = async () => {
+                console.log(window.location);
+                
 
-                if (!accessToken) {
+                const fragment = new URL(window.location.href).searchParams;
+
+
+                const [code, state] = [fragment.get('code'), fragment.get('state')];
+                console.log(code, state);
+
+
+                if (!code) {
                     // Show the login button if there's no access token
                     document.getElementById('login').style.display = 'block';
                 }
 
-                // Handle the user's access token
-                fetch('https://discord.com/api/users/@me', {
-                    headers: {
-                        authorization: `${tokenType} ${accessToken}`,
-                    },
-                })
-                .then(result => result.json())
-                .then(response => {
-                    const { username, discriminator } = response;
-                    document.getElementById('info').innerText += ` ${username}#${discriminator}`;
-                })
-                .catch(console.error);
-
-                if (!accessToken) {
+                
+                
+                if (!code) {
                     const randomString = generateRandomString();
                     localStorage.setItem('oauth-state', randomString);
 
@@ -69,7 +104,16 @@
                 if (localStorage.getItem('oauth-state') !== atob(decodeURIComponent(state))) {
                     console.log('You may have been clickjacked!');
                 }
+                // Handle the user's access token
+                if (code) {
+               
+            
+          let apiResponse = await fetch("http://localhost:53134/connect?code=" + code).then(r => r.json());
+            console.log(apiResponse);
+            const { username, discriminator } = apiResponse;
+            document.getElementById('info').innerText += ` ${username}#${discriminator}`;
             };
+        }
         </script>
     </body>
 </html>
